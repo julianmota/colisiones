@@ -1,0 +1,72 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class CollisionControl : MonoBehaviour
+{
+    public Transform Sphere_1;
+    public Transform Sphere_2;
+    public GameObject Parent;
+    float angulo;
+
+    float velocidad_x1 = 3.5f, velocidad_x2 = -1.2f, velocidad_y1 = 0f, velocidad_y2 = -1.2f;
+    float posicion_x1 = 0.0f, posicion_x2 = 2.4f, posicion_y1 = 0f, posicion_y2 = 2f;
+    public float masa_s1 = 1.0f, masa_s2 = 1.0f;
+    float e = 1.0f;
+    float radio_s = 0.5f;
+    float radio2 = 1.0f;
+    float v1p, v2p, vps1, vps2, v1n, v2n;
+
+    void Start()
+    {
+        angulo = Mathf.Atan2(posicion_y1 - posicion_y2, posicion_x1 - posicion_x2);
+
+        Sphere_1 = this.gameObject.transform.GetChild(0);
+        Sphere_2 = this.gameObject.transform.GetChild(1);
+        Sphere_1.transform.localScale = new Vector3(2 * radio_s, 2 * radio_s, 2 * radio_s);
+        Sphere_2.transform.localScale = new Vector3(2 * radio2, 2 * radio2, 2 * radio2);
+        Sphere_1.position = new Vector3(posicion_x1, posicion_y1, 0);
+        Sphere_2.position = new Vector3(posicion_x2, posicion_y2, 0);
+        Sphere_1.GetComponent<Sphere>().setVelocidad(new Vector3(velocidad_x1, velocidad_y1, 0));
+        Sphere_2.GetComponent<Sphere>().setVelocidad(new Vector3(velocidad_x2, velocidad_y2, 0));
+    }
+
+    void Update()
+    {
+        float distancia = Mathf.Abs(Sphere_1.position.x - Sphere_2.position.x);
+        float distancia2 = Mathf.Abs(Sphere_1.position.y - Sphere_2.position.y);
+        float distance = Vector3.Distance(Sphere_1.position, Sphere_2.position);
+        float aux = 1.0f / (masa_s1 + masa_s2);
+        Vector3 vel1 = Sphere_1.GetComponent<Sphere>().getVelocidad();
+        Vector3 vel2 = Sphere_2.GetComponent<Sphere>().getVelocidad();
+        v2p = velocidad_x2 * Mathf.Cos(angulo) + velocidad_y2 * Mathf.Sin(angulo);
+        v2n = -(velocidad_x2) * Mathf.Sin(angulo) + velocidad_y2 * Mathf.Cos(angulo);
+        v1p = velocidad_x1 * Mathf.Cos(angulo) + velocidad_y1 * Mathf.Sin(angulo);
+        v1n = -(velocidad_x1) * Mathf.Sin(angulo) + velocidad_y1 * Mathf.Cos(angulo);
+
+        if (distance <= radio_s + radio2)
+        {
+            vps1 = (masa_s1 - e * masa_s2) * v1p * aux + (1.0f + e) * masa_s2 * v2p * aux;
+            vps2 = (1.0f + e) * masa_s1 * v1p * aux + (masa_s2 - e * masa_s1) * v2p * aux;
+
+            velocidad_x1 = vps1 * Mathf.Cos(angulo) - v1n * Mathf.Sin(angulo);
+            velocidad_y1 = vps1 * Mathf.Sin(angulo) + v1n * Mathf.Cos(angulo);
+            velocidad_x2 = vps2 * Mathf.Cos(angulo) - v2n * Mathf.Sin(angulo);
+            velocidad_y2 = vps2 * Mathf.Sin(angulo) + v2n * Mathf.Cos(angulo);
+
+            Sphere_1.GetComponent<Sphere>().setVelocidad(new Vector3(velocidad_x1, velocidad_y1, 0));
+            Sphere_2.GetComponent<Sphere>().setVelocidad(new Vector3(velocidad_x2, velocidad_y2, 0));
+            print("D: " + distance);
+            print("V1: " + velocidad_x1);
+            print("V2: " + velocidad_x2);
+        }
+
+        posicion_x1 = posicion_x1 + Time.deltaTime * velocidad_x1;
+        posicion_x2 = posicion_x2 + Time.deltaTime * velocidad_x2;
+        posicion_y1 = posicion_y1 + Time.deltaTime * velocidad_y1;
+        posicion_y2 = posicion_y2 + Time.deltaTime * velocidad_y2;
+        Sphere_1.position = new Vector3(posicion_x1 + Time.deltaTime * velocidad_x1, posicion_y1 + Time.deltaTime * velocidad_y1, 0);
+        Sphere_2.position = new Vector3(posicion_x2 + Time.deltaTime * velocidad_x2, posicion_y2 + Time.deltaTime * velocidad_y2, 0);
+    }
+}
+
